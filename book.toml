@@ -1,0 +1,5 @@
+[book]
+authors = ["OscarAspelin"]
+language = "en"
+src = "src"
+title = "LeetCode With Rust"
