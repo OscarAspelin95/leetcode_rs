@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>1. Two Sum - LeetCode With Rust</title>
+        <title>String - LeetCode With Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -175,101 +175,17 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="1-two-sum"><a class="header" href="#1-two-sum">1. Two Sum</a></h1>
-<h2 id="problem-link"><a class="header" href="#problem-link"><a href="https://leetcode.com/problems/two-sum/">Problem link</a></a></h2>
-<h2 id="problem-description"><a class="header" href="#problem-description">Problem description</a></h2>
-<pre><code>Given an array of integers nums and an integer target,
-return indices of the two numbers such that they add up to target.
-
-You may assume that each input would have exactly one solution,
-and you may not use the same element twice.
-
-You can return the answer in any order.
-
-
-Example 1:
-Input: nums = [2,7,11,15], target = 9
-Output: [0,1]
-Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
-Example 2:
-
-Input: nums = [3,2,4], target = 6
-Output: [1,2]
-Example 3:
-
-Input: nums = [3,3], target = 6
-Output: [0,1]
-
-
-Constraints:
-
-2 &lt;= nums.length &lt;= 104
--109 &lt;= nums[i] &lt;= 109
--109 &lt;= target &lt;= 109
-Only one valid answer exists.
-
-
-Follow-up: Can you come up with an algorithm that is less than O(n2) time complexity?
-</code></pre>
-<h2 id="comments"><a class="header" href="#comments">Comments</a></h2>
-<p>Intuitively, one thinks of a double for loop because this is one way to check all numbers against each other.</p>
-<p>We loop over all elements and their indices with .enumerate() and check that indices are not equal, but that the sum of the two numbers are equal to the target. Sure enough, something like this works:</p>
-<pre><pre class="playground"><code class="language-rust">pub fn two_sum(nums: Vec&lt;i32&gt;, target: i32) -&gt; Vec&lt;i32&gt; {
-    for (i1, n1) in nums.iter().enumerate() {
-        for (i2, n2) in nums.iter().enumerate() {
-            if i1 != i2 &amp;&amp; n1 + n2 == target {
-                return vec![i1 as i32, i2 as i32];
-            }
-        }
-    }
-
-    unreachable!("Solution is expected to exist")
-}
-
-
-fn main(){
-	assert_eq!(two_sum(vec![2, 7, 11, 15], 9), vec![0, 1]);
-}</code></pre></pre>
-<p>However, this is not a very efficient solution because it is <code>O(n^2)</code> due to the double for loop.</p>
-<h2 id="solution"><a class="header" href="#solution">Solution</a></h2>
-<p>We can make this <code>O(n)</code> because when we have done a single pass, we have seen all numbers once which actually is enough. The approach we'll use is NOT to look ahead of our current number, but rather backwards to what we have already seen. This requires us to store numbers somewhere when we iterate. This <q>somewhere</q> needs to have a lookup time of <code>O(1)</code> for it to be efficient so we'll use a HashMap.</p>
-<p>Let's think about this with the example of <code>nums = [2, 7, 11, 15]</code> and <code>target = 9</code>. We start iterating over nums and get the first number <code>2</code>. We realize that if a <code>7</code> (<code>9</code> - <code>2</code>) would have been in our HashMap, we'd be done. Since our HashMap is empty, we have no match but instead add <code>2</code> along with its index <code>0</code> to the HashMap.</p>
-<p>We then reach <code>7</code>. The target number we'd like is <code>9</code> - <code>7</code> = <code>2</code>. We check our HashMap and see that <code>2</code> actually exists. We can extract the index of <code>2</code> from the HashMap and we also have the index of <code>7</code> since we use <code>.enumerate()</code>.</p>
-<pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
-
-pub fn two_sum(nums: Vec&lt;i32&gt;, target: i32) -&gt; Vec&lt;i32&gt; {
-    let mut hmap: HashMap&lt;i32, i32&gt; = HashMap::new();
-
-    for (i, n) in nums.iter().enumerate() {
-        let diff = target - n;
-
-        match hmap.get(&amp;diff) {
-            Some(j) =&gt; return vec![*j, i as i32],
-            None =&gt; hmap.insert(*n, i as i32),
-        };
-    }
-
-    unreachable!("Solution is expected to exist")
-}
-
-fn main() {
-    let sol = two_sum(vec![2, 7, 11, 15], 9);
-
-    println!("{:?}", sol);
-}</code></pre></pre>
-<h2 id="even-better-solution"><a class="header" href="#even-better-solution">Even Better Solution</a></h2>
-<p>We can do better. We see that the length of <code>nums</code> can be <code>&lt;=10^4</code>, which is rather large. Our HashMap does not infinite capacity, but needs to re-allocate when it reaches its capacity. If we pre-allocate the capacity to be the length of <code>nums</code>, we can avoid repeated re-allocations. Essentially, we only have to change to:</p>
-<pre><code class="language-rust noplayground">let mut hmap: HashMap&lt;i32, i32&gt; = HashMap::with_capacity(nums.len());</code></pre>
+                        <h1 id="string"><a class="header" href="#string">String</a></h1>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../arrays/introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../arrays/1_twosum.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../strings/introduction.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../strings/125_valid_palindrome.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -279,11 +195,11 @@ fn main() {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../arrays/introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../arrays/1_twosum.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../strings/introduction.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../strings/125_valid_palindrome.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
