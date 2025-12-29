@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>125. Valid Palindrome - LeetCode With Rust</title>
+        <title>3. Longest Substring Without Repeating Characters - LeetCode With Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -175,177 +175,197 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="125-valid-palindrome"><a class="header" href="#125-valid-palindrome">125. Valid Palindrome</a></h1>
-<h2 id="problem-link"><a class="header" href="#problem-link"><a href="https://leetcode.com/problems/valid-palindrome/">Problem link</a></a></h2>
+                        <h1 id="3-longest-substring-without-repeating-characters"><a class="header" href="#3-longest-substring-without-repeating-characters">3. Longest Substring Without Repeating Characters</a></h1>
+<h2 id="problem-link"><a class="header" href="#problem-link"><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/">Problem link</a></a></h2>
 <h2 id="problem-description"><a class="header" href="#problem-description">Problem description</a></h2>
-<pre><code>A phrase is a palindrome if, after converting all uppercase letters into lowercase
-letters and removing all non-alphanumeric characters, it reads the same forward
-and backward. Alphanumeric characters includeletters and numbers.
-
-Given a string s, return true if it is a palindrome, or false otherwise.
-
-
+<pre><code class="language-json">Given a string s, find the length of the longest substring
+without duplicate characters.
 
 Example 1:
 
-Input: s = "A man, a plan, a canal: Panama"
-Output: true
-Explanation: "amanaplanacanalpanama" is a palindrome.
+Input: s = "abcabcbb"
+Output: 3
+Explanation: The answer is "abc", with the length of 3.
+Note that "bca" and "cab" are also correct answers.
 Example 2:
 
-Input: s = "race a car"
-Output: false
-Explanation: "raceacar" is not a palindrome.
+Input: s = "bbbbb"
+Output: 1
+Explanation: The answer is "b", with the length of 1.
 Example 3:
 
-Input: s = " "
-Output: true
-Explanation: s is an empty string "" after removing non-alphanumeric characters.
-Since an empty string reads the same forward and backward, it is a palindrome.
+Input: s = "pwwkew"
+Output: 3
+Explanation: The answer is "wke", with the length of 3.
+Notice that the answer must be a substring, "pwke"
+is a subsequence and not a substring.
 
 
 Constraints:
 
-1 &lt;= s.length &lt;= 2 * 105
-s consists only of printable ASCII characters.
+0 &lt;= s.length &lt;= 5 * 104
+s consists of English letters, digits, symbols and spaces.
 </code></pre>
 <h2 id="comments"><a class="header" href="#comments">Comments</a></h2>
-<p>There are multiple ways of solving this problem. One intuitive approach is to filter out non-alphanumeric characters and map the remaining characters to lowercase. Then, we could compare the filtered string with its reverse. There are a few performance issues with this:</p>
+<p>We first need to think about the constraints and edge cases here:</p>
 <ul>
-<li>We first to a pass through the string for filtering and mapping.</li>
-<li>We then have to reverse the resulting string for comparison.</li>
+<li>If <code>length == 0</code>, we have no substring.</li>
+<li>If <code>length == 1</code>, we have a substring of length 1.</li>
 </ul>
-<p>However, lets try to do this anyways because this let's us use <code>filter_map</code> which is awesome.</p>
-<pre><pre class="playground"><code class="language-rust">pub fn is_palindrome(s: String) -&gt; bool {
-    if s.len() &lt;= 1 {
-        return true;
-    }
+<p>Otherwise, we need to do something smart. The brute force approach would be to check every possible substring. However, this is not feasible, even for relatively short strings.</p>
+<p>We are concerned with uniqueness in a range. E.g., in a given range, we cannot have duplicates. This tells me we should use a HashSet to keep track of duplicates. As for the algorithm itself, We could start a dynamic window at each position and increment a pointer as long as we have unique values. For each window, we'll use a HashSet to keep track of duplicates.</p>
+<p>E.g., we start at the beginning and add the first character to our HashSet.</p>
+<pre><code>let mut longest: usize = 0
 
-    let pruned: String = s
-        .chars()
-        .filter_map(|c| match c.is_alphanumeric() {
-            true =&gt; Some(c.to_ascii_lowercase()),
-            false =&gt; None,
-        })
-        .collect();
+"abcabcbb"
+ |
 
-    let pruned_reverse: String = pruned.chars().rev().collect();
+seen = {a}
+</code></pre>
+<p>We then increment by one. <code>b</code> is next, and is not in our HashSet so we'll add it.</p>
+<pre><code>let mut longest: usize = 0
 
-    pruned == pruned_reverse
-}
+"abcabcbb"
+ ||
+
+seen = {a, b}
+</code></pre>
+<p>We increment again by one. <code>c</code> is next, and is not in our HashSet so we'll add it.</p>
+<pre><code>longest = 0
+
+"abcabcbb"
+ |||
+
+seen = {a, b, c}
+</code></pre>
+<p>We increment a fourth time. <code>a</code> is next, and is in our HashSet. We have found one substring. We'll calculate its length and update our longest so far seen substring. We also reset seen.</p>
+<pre><code>longest = 0
+
+"abcabcbb"
+ ||||
+
+seen = {a, b, c}
 
 
-fn main() {
-    println!("{}", is_palindrome("A man, a plan, a canal: Panama".to_string()));
-}</code></pre></pre>
-<p>With <code>filter_map</code> we can filter out non-alphanumeric characters and map the remaining characters to lowercase at the same time. The secret is that returning <code>None</code> does the filtering, whilst returning <code>Some</code> with an optinal mapping keeps the character.</p>
+longest = max(longest, len(seen)) = 3
+seen = {}
+
+</code></pre>
+<p>We bump our pointer to start at index 1 (<code>b</code>). Then we continue with this logic until we have reached the end of the string.</p>
+<pre><code>longest = 3
+
+"abcabcbb"
+  |
+
+seen = {b}
+</code></pre>
 <h2 id="solution"><a class="header" href="#solution">Solution</a></h2>
-<p>Let's skip reversing the string. A better solution is a two pointer approach. If we start at indices <code>0</code> and <code>s.len() - 1</code> with our left and right pointers, we can compare the characters at these indices. If they match, we move both pointers one step inwards. If at any point the characters don't match, we return <code>false</code>.</p>
-<p>Consider the case of a pruned string <code>abba</code>. Our layout would look something like this in the beginning.</p>
-<pre><code>a b b a
-^     ^
-l     r
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashSet;
 
-</code></pre>
-<p>where <code>l = 0</code> and <code>r = s.len() - 1 = 3</code>. We see that <code>s[l] = a</code> and <code>s[r] = a</code> match so we move both pointers inwards. We now have <code>l = 1</code> and <code>r = 2</code>.</p>
-<pre><code>a b b a
-  ^ ^
-  l r
-</code></pre>
-<p>These also match so we move <code>l</code> and <code>r</code> inwards again. However, now they pass each other at which point we can return <code>true</code> because all characters matched.</p>
-<p>How do we get the nth character of a string? One way is <code>s.chars().nth(n).unwrap()</code>, but we can do better. The problem with <code>.chars().nth(n)</code> is that we need to iterate to <code>n</code> each time to find the char of interest. We'd like <code>O(1)</code> lookup, which we have in a <code>Vec</code>. Hence, we first convert our string to <code>Vec&lt;char&gt;</code> and then access chars with <code>[n]</code>.</p>
-<pre><pre class="playground"><code class="language-rust">pub fn is_palindrome(s: String) -&gt; bool {
+pub fn length_of_longest_substring(s: String) -&gt; i32 {
     if s.len() &lt;= 1 {
-        return true;
+        return s.len() as i32;
     }
 
-    let pruned: String = s
-        .chars()
-        .filter_map(|c| match c.is_alphanumeric() {
-            true =&gt; Some(c.to_ascii_lowercase()),
-            false =&gt; None,
-        })
-        .collect();
+    let mut longest: usize = 0;
+    let s_vec = s.as_bytes();
+    let mut i: usize = 0;
 
-    if pruned.len() &lt;= 1 {
-        return true;
-    }
+    while i &lt;= s.len() - 1 {
+		let mut hset: HashSet&lt;u8&gt; = HashSet::new();
+        hset.insert(s_vec[i]);
+    
+        let mut j: usize = i + 1;
 
-    let s_vec: Vec&lt;char&gt; = pruned.chars().collect();
-
-    let mut i = 0;
-    let mut j = s_vec.len() - 1;
-
-    while i &lt; j {
-        if s_vec[i].to_ascii_lowercase() != s_vec[j].to_ascii_lowercase() {
-            return false;
+        while j &lt;= s.len() - 1 {
+            match hset.contains(&amp;s_vec[j]) {
+                true =&gt; {
+                    longest = longest.max(hset.len());
+                    break;
+                }
+                false =&gt; {
+                    hset.insert(s_vec[j]);
+                    j += 1;
+                }
+            }
         }
+
+        longest = longest.max(hset.len());
+
         i += 1;
-        j -= 1;
     }
 
-    true
+    longest as i32
 }
 
-fn main() {
-    let s = ".,".to_string();
-    println!("{}", is_palindrome(s));
+fn main(){
+	assert_eq!(length_of_longest_substring("abcabcbb".to_string()), 3);
 }</code></pre></pre>
 <h2 id="even-better-solution"><a class="header" href="#even-better-solution">Even Better Solution</a></h2>
-<p>For an even more efficient solution, we skip pruning the string first. Instead, we implement a <q>fast forward</q> approach for our pointers. While the ith character is not alphanumeric, we increment it. Similarly, while the jth character is not alphanumeric, we decrement it. After fast forwarding, we compare. If equal, we continue. If not, we return false.</p>
-<pre><pre class="playground"><code class="language-rust">pub fn is_palindrome(s: String) -&gt; bool {
+<p>We can make this solution rather memory efficient and a bit more runtime efficient. If we define our HashSet once, and reuse it across iterations (but make sure to clean it first) we can save some memory. We can also improve the runtime by skipping the last iterations based on the longest substring seen so far. E.g., if our longest substring is 4 and we only have 3 characters to start from and iterate over, we cannot possibly find a longer substring.</p>
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashSet;
+
+pub fn length_of_longest_substring(s: String) -&gt; i32 {
     if s.len() &lt;= 1 {
-        return true;
+        return s.len() as i32;
     }
 
-    let s_vec: Vec&lt;char&gt; = s.chars().collect();
+    let mut longest: usize = 0;
+    let s_vec = s.as_bytes();
+    // Reuse the same hashset.
+    let mut hset: HashSet&lt;u8&gt; = HashSet::new();
 
-    let mut i = 0;
-    let mut j = s_vec.len() - 1;
+    let mut i: usize = 0;
 
-    loop {
-        // Fast forward to alphanumeric character.
-        while !s_vec[i].is_alphanumeric() &amp;&amp; i &lt; j {
-            i += 1;
-        }
-
-        while !s_vec[j].is_alphanumeric() &amp;&amp; j &gt; i {
-            j -= 1;
-        }
-
-        if i &gt;= j {
+    while i &lt;= s.len() - 1 {
+    	// Clear before each iteration.
+        hset.clear();
+        
+        // E.g., if our longest substring is 4 and we only have 3 characters left
+        // to check, we cannot possibly find a longer substring.
+        if i &gt;= s.len() - longest {
             break;
         }
 
-        let left_char = s_vec[i].to_ascii_lowercase();
-        let right_char = s_vec[j].to_ascii_lowercase();
+        hset.insert(s_vec[i]);
+        let mut j: usize = i + 1;
 
-        if left_char != right_char {
-            return false;
+        while j &lt;= s.len() - 1 {
+            match hset.contains(&amp;s_vec[j]) {
+                true =&gt; {
+                    longest = longest.max(hset.len());
+                    break;
+                }
+                false =&gt; {
+                    hset.insert(s_vec[j]);
+                    j += 1;
+                }
+            }
         }
+
+        longest = longest.max(hset.len());
+
         i += 1;
-        j -= 1;
-
-        if i &gt; j {
-            break;
-        }
     }
-    true
+
+    longest as i32
 }
 
-fn main() {
-    let s = "    A    b     B a              ".to_string();
-    println!("{}", is_palindrome(s));
+fn main(){
+	assert_eq!(length_of_longest_substring("abcabcbb".to_string()), 3);
 }</code></pre></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../strings/58_length_of_last_word.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../strings/introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next prefetch" href="../strings/58_length_of_last_word.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -353,10 +373,13 @@ fn main() {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../strings/58_length_of_last_word.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../strings/introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next prefetch" href="../strings/58_length_of_last_word.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

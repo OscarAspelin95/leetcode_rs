@@ -268,9 +268,269 @@ fn main() {
 <p>We can do better. We see that the length of <code>nums</code> can be <code>&lt;=10^4</code>, which is rather large. Our HashMap does not infinite capacity, but needs to re-allocate when it reaches its capacity. If we pre-allocate the capacity to be the length of <code>nums</code>, we can avoid repeated re-allocations. Essentially, we only have to change to:</p>
 <pre><code class="language-rust noplayground">let mut hmap: HashMap&lt;i32, i32&gt; = HashMap::with_capacity(nums.len());</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="string"><a class="header" href="#string">String</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="125-valid-palindrome"><a class="header" href="#125-valid-palindrome">125. Valid Palindrome</a></h1>
-<h2 id="problem-link-1"><a class="header" href="#problem-link-1"><a href="https://leetcode.com/problems/valid-palindrome/">Problem link</a></a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="3-longest-substring-without-repeating-characters"><a class="header" href="#3-longest-substring-without-repeating-characters">3. Longest Substring Without Repeating Characters</a></h1>
+<h2 id="problem-link-1"><a class="header" href="#problem-link-1"><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/">Problem link</a></a></h2>
 <h2 id="problem-description-1"><a class="header" href="#problem-description-1">Problem description</a></h2>
+<pre><code class="language-json">Given a string s, find the length of the longest substring
+without duplicate characters.
+
+Example 1:
+
+Input: s = "abcabcbb"
+Output: 3
+Explanation: The answer is "abc", with the length of 3.
+Note that "bca" and "cab" are also correct answers.
+Example 2:
+
+Input: s = "bbbbb"
+Output: 1
+Explanation: The answer is "b", with the length of 1.
+Example 3:
+
+Input: s = "pwwkew"
+Output: 3
+Explanation: The answer is "wke", with the length of 3.
+Notice that the answer must be a substring, "pwke"
+is a subsequence and not a substring.
+
+
+Constraints:
+
+0 &lt;= s.length &lt;= 5 * 104
+s consists of English letters, digits, symbols and spaces.
+</code></pre>
+<h2 id="comments-1"><a class="header" href="#comments-1">Comments</a></h2>
+<p>We first need to think about the constraints and edge cases here:</p>
+<ul>
+<li>If <code>length == 0</code>, we have no substring.</li>
+<li>If <code>length == 1</code>, we have a substring of length 1.</li>
+</ul>
+<p>Otherwise, we need to do something smart. The brute force approach would be to check every possible substring. However, this is not feasible, even for relatively short strings.</p>
+<p>We are concerned with uniqueness in a range. E.g., in a given range, we cannot have duplicates. This tells me we should use a HashSet to keep track of duplicates. As for the algorithm itself, We could start a dynamic window at each position and increment a pointer as long as we have unique values. For each window, we'll use a HashSet to keep track of duplicates.</p>
+<p>E.g., we start at the beginning and add the first character to our HashSet.</p>
+<pre><code>let mut longest: usize = 0
+
+"abcabcbb"
+ |
+
+seen = {a}
+</code></pre>
+<p>We then increment by one. <code>b</code> is next, and is not in our HashSet so we'll add it.</p>
+<pre><code>let mut longest: usize = 0
+
+"abcabcbb"
+ ||
+
+seen = {a, b}
+</code></pre>
+<p>We increment again by one. <code>c</code> is next, and is not in our HashSet so we'll add it.</p>
+<pre><code>longest = 0
+
+"abcabcbb"
+ |||
+
+seen = {a, b, c}
+</code></pre>
+<p>We increment a fourth time. <code>a</code> is next, and is in our HashSet. We have found one substring. We'll calculate its length and update our longest so far seen substring. We also reset seen.</p>
+<pre><code>longest = 0
+
+"abcabcbb"
+ ||||
+
+seen = {a, b, c}
+
+
+longest = max(longest, len(seen)) = 3
+seen = {}
+
+</code></pre>
+<p>We bump our pointer to start at index 1 (<code>b</code>). Then we continue with this logic until we have reached the end of the string.</p>
+<pre><code>longest = 3
+
+"abcabcbb"
+  |
+
+seen = {b}
+</code></pre>
+<h2 id="solution-1"><a class="header" href="#solution-1">Solution</a></h2>
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashSet;
+
+pub fn length_of_longest_substring(s: String) -&gt; i32 {
+    if s.len() &lt;= 1 {
+        return s.len() as i32;
+    }
+
+    let mut longest: usize = 0;
+    let s_vec = s.as_bytes();
+    let mut i: usize = 0;
+
+    while i &lt;= s.len() - 1 {
+		let mut hset: HashSet&lt;u8&gt; = HashSet::new();
+        hset.insert(s_vec[i]);
+    
+        let mut j: usize = i + 1;
+
+        while j &lt;= s.len() - 1 {
+            match hset.contains(&amp;s_vec[j]) {
+                true =&gt; {
+                    longest = longest.max(hset.len());
+                    break;
+                }
+                false =&gt; {
+                    hset.insert(s_vec[j]);
+                    j += 1;
+                }
+            }
+        }
+
+        longest = longest.max(hset.len());
+
+        i += 1;
+    }
+
+    longest as i32
+}
+
+fn main(){
+	assert_eq!(length_of_longest_substring("abcabcbb".to_string()), 3);
+}</code></pre></pre>
+<h2 id="even-better-solution-1"><a class="header" href="#even-better-solution-1">Even Better Solution</a></h2>
+<p>We can make this solution rather memory efficient and a bit more runtime efficient. If we define our HashSet once, and reuse it across iterations (but make sure to clean it first) we can save some memory. We can also improve the runtime by skipping the last iterations based on the longest substring seen so far. E.g., if our longest substring is 4 and we only have 3 characters to start from and iterate over, we cannot possibly find a longer substring.</p>
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashSet;
+
+pub fn length_of_longest_substring(s: String) -&gt; i32 {
+    if s.len() &lt;= 1 {
+        return s.len() as i32;
+    }
+
+    let mut longest: usize = 0;
+    let s_vec = s.as_bytes();
+    // Reuse the same hashset.
+    let mut hset: HashSet&lt;u8&gt; = HashSet::new();
+
+    let mut i: usize = 0;
+
+    while i &lt;= s.len() - 1 {
+    	// Clear before each iteration.
+        hset.clear();
+        
+        // E.g., if our longest substring is 4 and we only have 3 characters left
+        // to check, we cannot possibly find a longer substring.
+        if i &gt;= s.len() - longest {
+            break;
+        }
+
+        hset.insert(s_vec[i]);
+        let mut j: usize = i + 1;
+
+        while j &lt;= s.len() - 1 {
+            match hset.contains(&amp;s_vec[j]) {
+                true =&gt; {
+                    longest = longest.max(hset.len());
+                    break;
+                }
+                false =&gt; {
+                    hset.insert(s_vec[j]);
+                    j += 1;
+                }
+            }
+        }
+
+        longest = longest.max(hset.len());
+
+        i += 1;
+    }
+
+    longest as i32
+}
+
+fn main(){
+	assert_eq!(length_of_longest_substring("abcabcbb".to_string()), 3);
+}</code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="58-length-of-last-word"><a class="header" href="#58-length-of-last-word">58. Length of Last Word</a></h1>
+<h2 id="problem-link-2"><a class="header" href="#problem-link-2"><a href="https://leetcode.com/problems/length-of-last-word/">Problem link</a></a></h2>
+<h2 id="problem-description-2"><a class="header" href="#problem-description-2">Problem description</a></h2>
+<pre><code class="language-json">Given a string s consisting of words and spaces, return the length of the
+last word in the string.
+
+A word is a maximal substring consisting of non-space characters only.
+
+
+
+Example 1:
+
+Input: s = "Hello World"
+Output: 5
+Explanation: The last word is "World" with length 5.
+Example 2:
+
+Input: s = "   fly me   to   the moon  "
+Output: 4
+Explanation: The last word is "moon" with length 4.
+Example 3:
+
+Input: s = "luffy is still joyboy"
+Output: 6
+Explanation: The last word is "joyboy" with length 6.
+
+
+Constraints:
+
+1 &lt;= s.length &lt;= 104
+s consists of only English letters and spaces ' '.
+There will be at least one word in s.
+</code></pre>
+<h2 id="comments-2"><a class="header" href="#comments-2">Comments</a></h2>
+<p>The intuitive solution here would be to first trim spaces from the string. This ensures the last character is not a space. Then, we'd split the string by <code>" "</code> and get the length of the last string from the resulting <code>Vec</code>. We are guaranteed at least one word.</p>
+<h2 id="solution-2"><a class="header" href="#solution-2">Solution</a></h2>
+<p>The following solution works and is relatively efficient for shorter strings.</p>
+<pre><pre class="playground"><code class="language-rust">pub fn length_of_last_word(s: String) -&gt; i32 {
+    let trimmed = s.trim_end().split(" ").last().unwrap_or("");
+
+    trimmed.len() as i32
+}
+
+fn main() {
+    assert_eq!(length_of_last_word(" This is a sentence    ".to_string()), 8);
+}</code></pre></pre>
+<p>However, we might run into performance issues for very long strings. The reason is <code>.last()</code>, which consumes the entire iterator.</p>
+<h2 id="even-better-solution-2"><a class="header" href="#even-better-solution-2">Even Better Solution</a></h2>
+<p>An even better approach would be to start from the end of the string. We'll have a pointer that decrements until we find a non-space character. At that point, we know we have the end of the last word. Then, we'll keep decrementing until we find a space again, whilst simultaneously counting the number of decrements (which in the end is out length). The benefit here is that we use very little memory (only keep track of the pointer).</p>
+<p>We have an edge case here, which is if the first character is a non-space. If we define our right pointer <code>r</code> to be of type <code>usize</code>, we cannot decrement below 0. To solve this, we'll use <code>while r &gt; 0</code> and finally check if <code>r == 0</code>. If so, we also check if the character is a space or not.</p>
+<pre><pre class="playground"><code class="language-rust">pub fn length_of_last_word(s: String) -&gt; i32 {
+    let mut r = s.len() - 1;
+
+    let bytes = s.as_bytes();
+
+    while r &gt; 0 &amp;&amp; bytes[r] == b' ' {
+        r -= 1;
+    }
+
+    let mut c: i32 = 0;
+
+    while r &gt; 0 &amp;&amp; bytes[r] != b' ' {
+        c += 1;
+        r -= 1;
+    }
+
+    if r == 0 &amp;&amp; bytes[r] != b' ' {
+        c += 1
+    }
+
+    c
+}
+
+fn main(){
+	assert_eq!(length_of_last_word("A".to_string()), 1);
+	assert_eq!(length_of_last_word(" A ".to_string()), 1);
+	assert_eq!(length_of_last_word(" A".to_string()), 1);
+	assert_eq!(length_of_last_word("A".to_string()), 1);
+	assert_eq!(length_of_last_word(" Word ".to_string()), 4);
+    assert_eq!(length_of_last_word(" This is a sentence    ".to_string()), 8);
+}</code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="125-valid-palindrome"><a class="header" href="#125-valid-palindrome">125. Valid Palindrome</a></h1>
+<h2 id="problem-link-3"><a class="header" href="#problem-link-3"><a href="https://leetcode.com/problems/valid-palindrome/">Problem link</a></a></h2>
+<h2 id="problem-description-3"><a class="header" href="#problem-description-3">Problem description</a></h2>
 <pre><code>A phrase is a palindrome if, after converting all uppercase letters into lowercase
 letters and removing all non-alphanumeric characters, it reads the same forward
 and backward. Alphanumeric characters includeletters and numbers.
@@ -302,7 +562,7 @@ Constraints:
 1 &lt;= s.length &lt;= 2 * 105
 s consists only of printable ASCII characters.
 </code></pre>
-<h2 id="comments-1"><a class="header" href="#comments-1">Comments</a></h2>
+<h2 id="comments-3"><a class="header" href="#comments-3">Comments</a></h2>
 <p>There are multiple ways of solving this problem. One intuitive approach is to filter out non-alphanumeric characters and map the remaining characters to lowercase. Then, we could compare the filtered string with its reverse. There are a few performance issues with this:</p>
 <ul>
 <li>We first to a pass through the string for filtering and mapping.</li>
@@ -332,7 +592,7 @@ fn main() {
     println!("{}", is_palindrome("A man, a plan, a canal: Panama".to_string()));
 }</code></pre></pre>
 <p>With <code>filter_map</code> we can filter out non-alphanumeric characters and map the remaining characters to lowercase at the same time. The secret is that returning <code>None</code> does the filtering, whilst returning <code>Some</code> with an optinal mapping keeps the character.</p>
-<h2 id="solution-1"><a class="header" href="#solution-1">Solution</a></h2>
+<h2 id="solution-3"><a class="header" href="#solution-3">Solution</a></h2>
 <p>Let's skip reversing the string. A better solution is a two pointer approach. If we start at indices <code>0</code> and <code>s.len() - 1</code> with our left and right pointers, we can compare the characters at these indices. If they match, we move both pointers one step inwards. If at any point the characters don't match, we return <code>false</code>.</p>
 <p>Consider the case of a pruned string <code>abba</code>. Our layout would look something like this in the beginning.</p>
 <pre><code>a b b a
@@ -384,7 +644,7 @@ fn main() {
     let s = ".,".to_string();
     println!("{}", is_palindrome(s));
 }</code></pre></pre>
-<h2 id="even-better-solution-1"><a class="header" href="#even-better-solution-1">Even Better Solution</a></h2>
+<h2 id="even-better-solution-3"><a class="header" href="#even-better-solution-3">Even Better Solution</a></h2>
 <p>For an even more efficient solution, we skip pruning the string first. Instead, we implement a <q>fast forward</q> approach for our pointers. While the ith character is not alphanumeric, we increment it. Similarly, while the jth character is not alphanumeric, we decrement it. After fast forwarding, we compare. If equal, we continue. If not, we return false.</p>
 <pre><pre class="playground"><code class="language-rust">pub fn is_palindrome(s: String) -&gt; bool {
     if s.len() &lt;= 1 {
